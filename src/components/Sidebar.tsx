@@ -9,16 +9,19 @@ import {
   UserPlus, 
   MessageSquare, 
   ClipboardList, 
-  LogOut 
+  LogOut,
+  Home
 } from "lucide-react";
 
 const navItems = [
   { href: "/", label: "Dashboard", icon: LayoutDashboard },
+  { href: "/rentals", label: "Rentals", icon: Home },
   { href: "/requests", label: "Requests", icon: ClipboardList },
   { href: "/users", label: "Users", icon: Users },
   { href: "/providers/add", label: "Add Provider", icon: UserPlus },
   { href: "/chat", label: "Support Chat", icon: MessageSquare },
 ];
+
 
 export function Sidebar() {
   const pathname = usePathname();
