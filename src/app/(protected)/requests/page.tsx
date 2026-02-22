@@ -1,5 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
+import { api } from '@/lib/api';
 
 export default function ProviderRequestsPage() {
   const [requests, setRequests] = useState<any[]>([]);
@@ -7,11 +8,9 @@ export default function ProviderRequestsPage() {
 
   const fetchRequests = async () => {
     try {
-      const res = await fetch('http://localhost:8080/api/public/provider-requests');
-      if (res.ok) {
-        const data = await res.json();
-        // Assuming we only want to show PENDING requests, or the backend already filters them
-        setRequests(data);
+      const res = await api.get('/public/provider-requests');
+      if (res.status === 200) {
+        setRequests(res.data);
       }
     } catch (error) {
       console.error('Failed to fetch provider requests', error);
@@ -26,10 +25,8 @@ export default function ProviderRequestsPage() {
 
   const handleApprove = async (id: number) => {
     try {
-      const res = await fetch(`http://localhost:8080/api/public/provider-requests/${id}/approve`, {
-        method: 'POST',
-      });
-      if (res.ok) {
+      const res = await api.post(`/public/provider-requests/${id}/approve`);
+      if (res.status === 200) {
         alert('Provider approved successfully!');
         fetchRequests(); // Refresh the list
       } else {
@@ -42,11 +39,8 @@ export default function ProviderRequestsPage() {
 
   const handleReject = async (id: number) => {
     try {
-      // Assuming you have a reject endpoint, or we just delete it
-      const res = await fetch(`http://localhost:8080/api/public/provider-requests/${id}/reject`, {
-        method: 'POST',
-      });
-      if (res.ok) {
+      const res = await api.post(`/public/provider-requests/${id}/reject`);
+      if (res.status === 200) {
         alert('Provider request rejected.');
         fetchRequests();
       } else {
