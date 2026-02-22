@@ -1,120 +1,126 @@
 'use client';
+import { useState, useEffect } from 'react';
 
-import { useEffect, useState } from 'react';
-import { api } from '@/lib/api';
-import { Check, X, Clock, MapPin } from 'lucide-react';
-
-interface RequestData {
-  id: number;
-  name: string;
-  serviceType: string;
-  description: string;
-  location: string;
-  phoneNumber: string;
-  lat: number;
-  lng: number;
-  status: string; // PENDING, APPROVED, REJECTED
-  photoData?: string;
-}
-
-export default function RequestsPage() {
-  const [requests, setRequests] = useState<RequestData[]>([]);
+export default function ProviderRequestsPage() {
+  const [requests, setRequests] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    fetchRequests();
-  }, []);
 
   const fetchRequests = async () => {
     try {
-      const response = await api.get('/provider-requests');
-      if (response.status === 200) {
-        setRequests(response.data);
+      const res = await fetch('http://localhost:8080/api/public/provider-requests');
+      if (res.ok) {
+        const data = await res.json();
+        // Assuming we only want to show PENDING requests, or the backend already filters them
+        setRequests(data);
       }
     } catch (error) {
-      console.error('Error fetching requests:', error);
+      console.error('Failed to fetch provider requests', error);
     } finally {
       setLoading(false);
     }
   };
 
+  useEffect(() => {
+    fetchRequests();
+  }, []);
+
   const handleApprove = async (id: number) => {
-    if(!confirm('Approve this provider?')) return;
     try {
-      await api.post(`/provider-requests/${id}/approve`);
-      fetchRequests(); // Refresh
+      const res = await fetch(`http://localhost:8080/api/public/provider-requests/${id}/approve`, {
+        method: 'POST',
+      });
+      if (res.ok) {
+        alert('Provider approved successfully!');
+        fetchRequests(); // Refresh the list
+      } else {
+        alert('Failed to approve provider.');
+      }
     } catch (error) {
-      console.error('Error approving:', error);
-      alert('Failed to approve request');
+      console.error('Error approving provider', error);
     }
   };
 
   const handleReject = async (id: number) => {
-    if(!confirm('Reject this provider?')) return;
     try {
-      await api.post(`/provider-requests/${id}/reject`);
-      fetchRequests(); // Refresh
+      // Assuming you have a reject endpoint, or we just delete it
+      const res = await fetch(`http://localhost:8080/api/public/provider-requests/${id}/reject`, {
+        method: 'POST',
+      });
+      if (res.ok) {
+        alert('Provider request rejected.');
+        fetchRequests();
+      } else {
+        alert('Failed to reject provider.');
+      }
     } catch (error) {
-      console.error('Error rejecting:', error);
-      alert('Failed to reject request');
+      console.error('Error rejecting provider', error);
     }
   };
 
-  return (
-    <div className="space-y-6">
-      <h2 className="text-3xl font-bold bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent">
-        Provider Requests
-      </h2>
+  if (loading) {
+    return <div className="p-8">Loading requests...</div>;
+  }
 
-      {loading ? (
-        <div className="text-center py-10 text-slate-400">Loading requests...</div>
-      ) : requests.length === 0 ? (
-        <div className="text-center py-20 bg-slate-900/50 rounded-xl border border-slate-800">
-           <Clock className="mx-auto h-12 w-12 text-slate-600 mb-4" />
-           <p className="text-slate-400 text-lg">No pending requests</p>
+  const pendingRequests = requests.filter(r => r.status === 'PENDING');
+
+  return (
+    <div className="p-8 max-w-7xl mx-auto">
+      <h1 className="text-3xl font-bold mb-8 text-gray-800">Provider Requests</h1>
+
+      {pendingRequests.length === 0 ? (
+        <div className="bg-white p-8 rounded-xl shadow-sm text-center text-gray-500">
+          No pending provider requests.
         </div>
       ) : (
-        <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-          {requests.map(req => (
-            <div key={req.id} className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden hover:border-slate-700 transition-colors">
-              <div className="relative h-48 bg-slate-800">
-                {req.photoData ? (
-                  <img src={`data:image/jpeg;base64,${req.photoData}`} alt={req.name} className="w-full h-full object-cover" />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center bg-slate-800 text-slate-600">
-                    No Photo
-                  </div>
-                )}
-                <div className="absolute top-4 right-4 bg-black/60 backdrop-blur px-3 py-1 rounded-full text-xs font-bold text-white uppercase tracking-wider">
-                  {req.serviceType}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {pendingRequests.map((request: any) => (
+            <div key={request.id} className="bg-white rounded-xl shadow-md overflow-hidden border border-gray-100 flex flex-col">
+              {request.photoData && (
+                <div className="h-48 w-full bg-gray-200 relative">
+                  <img 
+                    src={`data:image/jpeg;base64,${request.photoData}`} 
+                    alt={request.name} 
+                    className="w-full h-full object-cover"
+                  />
                 </div>
-              </div>
-              
-              <div className="p-6 space-y-4">
-                <div>
-                  <h3 className="text-xl font-bold text-slate-100">{req.name}</h3>
-                  <div className="flex items-center gap-2 text-slate-400 text-sm mt-1">
-                    <MapPin className="h-4 w-4" />
-                    <span>{req.location}</span>
+              )}
+              <div className="p-6 flex-grow flex flex-col">
+                <div className="flex justify-between items-start mb-4">
+                  <div>
+                    <h3 className="text-xl font-bold text-gray-900">{request.name}</h3>
+                    <span className="inline-block mt-1 px-3 py-1 bg-indigo-100 text-indigo-800 text-xs font-semibold rounded-full">
+                      {request.serviceType}
+                    </span>
                   </div>
                 </div>
                 
-                <p className="text-slate-400 text-sm line-clamp-3">
-                  {req.description}
-                </p>
-                
-                <div className="pt-4 flex gap-3 border-t border-slate-800">
-                  <button 
-                    onClick={() => handleApprove(req.id)}
-                    className="flex-1 bg-green-600 hover:bg-green-700 text-white py-2 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2"
+                <div className="space-y-2 mb-6 flex-grow">
+                  <p className="text-gray-600 text-sm">
+                    <span className="font-semibold">Phone:</span> {request.phoneNumber}
+                  </p>
+                  <p className="text-gray-600 text-sm">
+                    <span className="font-semibold">Email:</span> {request.email || 'N/A'}
+                  </p>
+                  <p className="text-gray-600 text-sm">
+                    <span className="font-semibold">Location:</span> {request.location}
+                  </p>
+                  <p className="text-gray-700 text-sm mt-3 italic line-clamp-3">
+                    "{request.description}"
+                  </p>
+                </div>
+
+                <div className="flex gap-3 mt-auto pt-4 border-t border-gray-100">
+                  <button
+                    onClick={() => handleReject(request.id)}
+                    className="flex-1 py-2 px-4 border border-red-500 text-red-600 rounded-lg hover:bg-red-50 font-medium transition-colors"
                   >
-                    <Check className="h-4 w-4" /> Approve
+                    Reject
                   </button>
-                  <button 
-                    onClick={() => handleReject(req.id)}
-                    className="flex-1 bg-slate-800 hover:bg-red-900/30 hover:text-red-400 text-slate-300 py-2 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2"
+                  <button
+                    onClick={() => handleApprove(request.id)}
+                    className="flex-1 py-2 px-4 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-medium shadow-sm transition-colors"
                   >
-                    <X className="h-4 w-4" /> Reject
+                    Approve
                   </button>
                 </div>
               </div>
