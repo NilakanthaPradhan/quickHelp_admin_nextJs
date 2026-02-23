@@ -8,7 +8,7 @@ export default function ProviderRequestsPage() {
 
   const fetchRequests = async () => {
     try {
-      const res = await api.get('/public/provider-requests');
+      const res = await api.get('/provider-requests');
       if (res.status === 200) {
         setRequests(res.data);
       }
@@ -25,7 +25,7 @@ export default function ProviderRequestsPage() {
 
   const handleApprove = async (id: number) => {
     try {
-      const res = await api.post(`/public/provider-requests/${id}/approve`);
+      const res = await api.post(`/provider-requests/${id}/approve`);
       if (res.status === 200) {
         alert('Provider approved successfully!');
         fetchRequests(); // Refresh the list
@@ -39,7 +39,7 @@ export default function ProviderRequestsPage() {
 
   const handleReject = async (id: number) => {
     try {
-      const res = await api.post(`/public/provider-requests/${id}/reject`);
+      const res = await api.post(`/provider-requests/${id}/reject`);
       if (res.status === 200) {
         alert('Provider request rejected.');
         fetchRequests();

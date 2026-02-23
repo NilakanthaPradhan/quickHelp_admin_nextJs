@@ -19,6 +19,7 @@ const navItems = [
   { href: "/rentals", label: "Rentals", icon: Home },
   { href: "/requests", label: "Requests", icon: ClipboardList },
   { href: "/users", label: "Users", icon: Users },
+  { href: "/providers", label: "Providers", icon: Users },
   { href: "/providers/add", label: "Add Provider", icon: UserPlus },
   { href: "/chat", label: "Support Chat", icon: MessageSquare },
 ];
